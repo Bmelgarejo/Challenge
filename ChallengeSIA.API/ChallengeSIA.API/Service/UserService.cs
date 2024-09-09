@@ -66,7 +66,7 @@ namespace ChallengeSIA.Services
                 var result = await _userManager.CreateAsync(user, registrationRequestDto.Password);
                 if (result.Succeeded)
                 {
-                    return "Ok";
+                    return "";
                 }
                 else
                 {

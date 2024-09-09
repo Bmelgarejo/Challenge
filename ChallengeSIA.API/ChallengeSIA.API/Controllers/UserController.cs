@@ -29,7 +29,6 @@ namespace ChallengeSIA.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.Message = "Usuario o Contraseña incorrecto.";
-                    return BadRequest(_response);
                 }
                 return Ok(_response);
             }
@@ -51,7 +50,6 @@ namespace ChallengeSIA.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.Message = errorMessage;
-                    return BadRequest(_response);
                 }
                 return Ok(_response);
             }
@@ -73,7 +71,6 @@ namespace ChallengeSIA.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.Message = errorMessage;
-                    return BadRequest(_response);
                 }
                 return Ok(_response);
             }
@@ -95,7 +92,6 @@ namespace ChallengeSIA.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.Message = errorMessage;
-                    return BadRequest(_response);
                 }
                 return Ok(_response);
             }
@@ -118,7 +114,6 @@ namespace ChallengeSIA.Controllers
                 {
                     _response.IsSuccess = false;
                     _response.Message = "Usuario no encontrado";
-                    return BadRequest(_response);
                 }
                 return Ok(_response);
             }
