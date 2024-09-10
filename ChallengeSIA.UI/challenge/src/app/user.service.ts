@@ -12,7 +12,6 @@ export class UserService {
   private apiUrl = 'https://localhost:7161/api/user'; 
  
   constructor(private http: HttpClient) {}
-
   
  httpOptions = {
     headers: new HttpHeaders({
