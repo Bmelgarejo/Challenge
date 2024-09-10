@@ -7,11 +7,11 @@ import { catchError } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'https://tuservidor.com/api/user';  // Cambia a la URL de tu backend
+  private apiUrl = 'https://tuservidor.com/api/user';  
 
   constructor(private http: HttpClient) {}
 
-  // Login
+
   login(model: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, model)
       .pipe(
@@ -19,7 +19,7 @@ export class UserService {
       );
   }
 
-  // Register
+  
   register(model: any): Observable<any> {
     return this.http.post(`${this.apiUrl}/register`, model)
       .pipe(
@@ -27,7 +27,7 @@ export class UserService {
       );
   }
 
-  // Update
+  
   update(userDto: any): Observable<any> {
     return this.http.put(`${this.apiUrl}/update`, userDto)
       .pipe(
@@ -35,7 +35,6 @@ export class UserService {
       );
   }
 
-  // Remove
   remove(email: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/remove/${email}`)
       .pipe(
@@ -43,7 +42,6 @@ export class UserService {
       );
   }
 
-  // Get a user by email
   getUserByEmail(email: string): Observable<any> {
     return this.http.get(`${this.apiUrl}?email=${email}`)
       .pipe(
@@ -51,7 +49,6 @@ export class UserService {
       );
   }
 
-  // Get all users
   getAllUsers(): Observable<any> {
     return this.http.get(`${this.apiUrl}/getAll`)
       .pipe(
@@ -59,7 +56,6 @@ export class UserService {
       );
   }
 
-  // Manejo de errores
   private handleError(error: any): Observable<never> {
     console.error('Ocurrió un error:', error);
     throw error;
