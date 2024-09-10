@@ -5,6 +5,7 @@ import { WindowData } from 'src/models/position';
 @Injectable({
   providedIn: 'root'
 })
+
 export class WebSocketService {
   private socket: WebSocket;
   private messageSubject: BehaviorSubject<WindowData[]> = new BehaviorSubject<WindowData[]>([]);

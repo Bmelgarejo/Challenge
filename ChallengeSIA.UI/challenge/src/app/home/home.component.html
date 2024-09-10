@@ -1,25 +1,17 @@
-<!-- home.component.html -->
-<div class="container">
-    <h1>Gestión de Ventanas</h1>
-  
-    <button (click)="openNotepad()">Abrir Notepad</button>
-    <button (click)="updateWindowPosition()">Actualizar Posición de Notepad</button>
-  
-    <div *ngIf="windows.length > 0">
-      <h2>Ventanas Actuales</h2>
-      <ul>
-        <li *ngFor="let window of windows">
-          <strong>Tipo de Ventana:</strong> {{ window.WindowType }}<br>
-          <strong>Posición:</strong><br>
-          Izquierda: {{ window.Position.Left }}<br>
-          Arriba: {{ window.Position.Top }}<br>
-          Derecha: {{ window.Position.Right }}<br>
-          Abajo: {{ window.Position.Bottom }}
-        </li>
-      </ul>
-    </div>
-    <div *ngIf="windows.length === 0">
-      <p>No hay ventanas abiertas.</p>
-    </div>
+<div *ngFor="let window of windows" 
+     class="resizable-window" 
+     [ngStyle]="{
+        'left.px': window.Position.Left, 
+        'top.px': window.Position.Top, 
+        'width.px': window.Position.Right - window.Position.Left, 
+        'height.px': window.Position.Bottom - window.Position.Top
+      }"
+     (mousedown)="onMouseDown($event, window)">
+  <div class="window-header">
+    {{ window.WindowType }}
   </div>
-  
+  <div class="window-body">
+    <!-- Aquí iría el contenido de la ventana, en este caso Notepad -->
+    Notepad Content
+  </div>
+</div>
