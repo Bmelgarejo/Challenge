@@ -1,6 +1,5 @@
-﻿using ChallengeSIA.API.Dto;
-using ChallengeSIA.Services.IServices;
-using Microsoft.AspNetCore.Http;
+﻿using DataAccess.Entity.Dto;
+using DataAccess.Service.IService;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChallengeSIA.Controllers
@@ -10,7 +9,7 @@ namespace ChallengeSIA.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-        protected ResponseDto _response;
+        private readonly ResponseDto _response;
 
         public UserController(IUserService userService)
         {

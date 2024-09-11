@@ -1,17 +1,13 @@
-<div *ngFor="let window of windows" 
-     class="resizable-window" 
-     [ngStyle]="{
-        'left.px': window.Position.Left, 
-        'top.px': window.Position.Top, 
-        'width.px': window.Position.Right - window.Position.Left, 
-        'height.px': window.Position.Bottom - window.Position.Top
-      }"
-     (mousedown)="onMouseDown($event, window)">
-  <div class="window-header">
-    {{ window.WindowType }}
+<div #container id="container">
+    <div *ngFor="let window of windows"
+         class="window"
+         [ngStyle]="{
+           'left.px': window.Position.Left,
+           'top.px': window.Position.Top,
+           'width.px': window.Position.Right - window.Position.Left,
+           'height.px': window.Position.Bottom - window.Position.Top
+         }"
+         (mousedown)="onMouseDown($event, window)">
+      {{ window.WindowType }}
+    </div>
   </div>
-  <div class="window-body">
-    <!-- Aquí iría el contenido de la ventana, en este caso Notepad -->
-    Notepad Content
-  </div>
-</div>

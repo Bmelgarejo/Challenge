@@ -1,10 +1,11 @@
 ﻿using AutoMapper;
-using ChallengeSIA.API.Dto;
-using ChallengeSIA.API.Repository.IRepository;
-using ChallengeSIA.Services.IServices;
+using DataAccess.Entity.Dto;
+using DataAccess.Repository.IRepository;
+using DataAccess.Service.IService;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
-namespace ChallengeSIA.Services
+namespace DataAccess.Service
 {
     public class UserService : IUserService
     {

@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ChallengeSIA.API.Repository.IRepository
+namespace DataAccess.Repository.IRepository
 {
     public interface IBaseRepository<T> where T : class
     {
@@ -18,5 +18,5 @@ namespace ChallengeSIA.API.Repository.IRepository
 
         Task<IEnumerable<T>> GetWhere(Expression<Func<T, bool>> predicate);
 
-       }
+    }
 }

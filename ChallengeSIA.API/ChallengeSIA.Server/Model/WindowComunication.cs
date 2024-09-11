@@ -45,6 +45,10 @@ namespace ChallengeSIA.Server.Model
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         public static extern bool SetWindowText(IntPtr hWnd, string lpString);
 
+        // Obtener el texto de la ventana
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
         // Método para buscar Notepads abiertos
         public static List<IntPtr> FindOpenNotepads(string windowTitle)
         {

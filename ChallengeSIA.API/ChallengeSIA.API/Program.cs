@@ -1,11 +1,11 @@
 using ChallengeSIA.API.Data;
-using ChallengeSIA.Services.IServices;
-using ChallengeSIA.Services;
+using DataAccess.Entity.Dto.Util;
+using DataAccess.Repository;
+using DataAccess.Repository.IRepository;
+using DataAccess.Service;
+using DataAccess.Service.IService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using ChallengeSIA.API.Dto.Util;
-using ChallengeSIA.API.Repository.IRepository;
-using ChallengeSIA.API.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 

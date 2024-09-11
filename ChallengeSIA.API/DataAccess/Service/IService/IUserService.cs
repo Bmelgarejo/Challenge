@@ -1,6 +1,6 @@
-﻿using ChallengeSIA.API.Dto;
+﻿using DataAccess.Entity.Dto;
 
-namespace ChallengeSIA.Services.IServices
+namespace DataAccess.Service.IService
 {
     public interface IUserService
     {

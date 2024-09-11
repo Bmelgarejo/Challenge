@@ -1,9 +1,10 @@
 ﻿using AutoMapper;
+using DataAccess.Entity.Dto;
 using Microsoft.AspNetCore.Identity;
 
-namespace ChallengeSIA.API.Dto.Util
+namespace DataAccess.Entity.Dto.Util
 {
-    public class AutoMapperProfiles: Profile
+    public class AutoMapperProfiles : Profile
     {
         public AutoMapperProfiles()
         {

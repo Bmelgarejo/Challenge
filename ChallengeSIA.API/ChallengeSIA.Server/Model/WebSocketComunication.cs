@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using DataAccess.Entity;
+using DataAccess.Service.IService;
+using System.Diagnostics;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
@@ -8,12 +10,17 @@ namespace ChallengeSIA.Server.Model
 {
     public class WebSocketComunication
     {
-        private const int SW_RESTORE = 9;
-        private const int SW_SHOW = 5;
         private static Dictionary<IntPtr, WindowComunication.RECT> notepads = new Dictionary<IntPtr, WindowComunication.RECT>();
+        private static IPositionService _positionService;
 
-        public static async Task StartServerAsync()
+        public WebSocketComunication(IPositionService positionService)
         {
+            _positionService = positionService;
+        }
+
+        static public async Task StartServerAsync(IPositionService positionService)
+        {
+            _positionService = positionService;
             HttpListener listener = new HttpListener();
             listener.Prefixes.Add("http://localhost:5000/ws/");
             listener.Start();
@@ -31,8 +38,7 @@ namespace ChallengeSIA.Server.Model
                 }
             }
         }
-
-        static async Task MonitorNotepadWindows(Dictionary<IntPtr, WindowComunication.RECT> windowStates, WebSocket webSocket)
+        static private async Task MonitorNotepadWindows(Dictionary<IntPtr, WindowComunication.RECT> windowStates, WebSocket webSocket)
         {
             while (webSocket.State == WebSocketState.Open)
             {
@@ -49,16 +55,25 @@ namespace ChallengeSIA.Server.Model
                             if (!windowStates.ContainsKey(hWnd) || !windowStates[hWnd].Equals(rect))
                             {
                                 windowStates[hWnd] = rect;
+
+                                StringBuilder windowText = new StringBuilder(256);
+                                WindowComunication.GetWindowText(hWnd, windowText, windowText.Capacity);
+
+                                var position = new Position
+                                {
+                                    Type = windowText.ToString(),
+                                    Left = rect.Left,
+                                    Top = rect.Top,
+                                    Right = rect.Right,
+                                    Bottom = rect.Bottom
+                                };
+
+                                _ = _positionService.SavePositionAsync(position);
+
                                 var window = new WindowData
                                 {
                                     WindowType = hWnd.ToString("X"),
-                                    Position = new PositionData
-                                    {
-                                        Bottom = rect.Bottom,
-                                        Left = rect.Left,
-                                        Right = rect.Right,
-                                        Top = rect.Top
-                                    }
+                                    Position = position
                                 };
 
                                 string jsonString = JsonSerializer.Serialize(window);
@@ -76,7 +91,8 @@ namespace ChallengeSIA.Server.Model
             }
         }
 
-        static async Task ReceiveMessages(WebSocket webSocket, Dictionary<IntPtr, WindowComunication.RECT> windowStates)
+
+        static private async Task ReceiveMessages(WebSocket webSocket, Dictionary<IntPtr, WindowComunication.RECT> windowStates)
         {
             var buffer = new byte[1024 * 4];
             while (webSocket.State == WebSocketState.Open)
@@ -113,7 +129,8 @@ namespace ChallengeSIA.Server.Model
                 }
             }
         }
-        static async Task OpenNotepadInstances()
+
+        static private async Task OpenNotepadInstances()
         {
             var maxInstances = 2;
             var notepadInstances = WindowComunication.FindOpenNotepads("Sin titulo");
@@ -126,11 +143,26 @@ namespace ChallengeSIA.Server.Model
 
             var instancesToOpen = maxInstances - notepadInstances.Count;
 
+            // Intentar recuperar las últimas posiciones guardadas
+            List<Position> lastPositions = await _positionService.GetLastPositionsAsync();
+
             var positions = new[]
             {
-              new WindowComunication.RECT { Left = 100, Top = 100, Right = 500, Bottom = 400 },  
-              new WindowComunication.RECT { Left = 620, Top = 100, Right = 1120, Bottom = 400 }  
-             };
+        lastPositions.Count > 0 ? new WindowComunication.RECT
+        {
+            Left = lastPositions[0].Left,
+            Top = lastPositions[0].Top,
+            Right = lastPositions[0].Right,
+            Bottom = lastPositions[0].Bottom
+        } : new WindowComunication.RECT { Left = 100, Top = 100, Right = 500, Bottom = 400 },
+        lastPositions.Count > 1 ? new WindowComunication.RECT
+        {
+            Left = lastPositions[1].Left,
+            Top = lastPositions[1].Top,
+            Right = lastPositions[1].Right,
+            Bottom = lastPositions[1].Bottom
+        } : new WindowComunication.RECT { Left = 620, Top = 100, Right = 1120, Bottom = 400 }
+    };
 
             for (int i = 0; i < instancesToOpen; i++)
             {
@@ -149,12 +181,12 @@ namespace ChallengeSIA.Server.Model
                     var rect = positions[i];
                     WindowComunication.SetWindowPos(hWnd, IntPtr.Zero, rect.Left, rect.Top,
                         rect.Right - rect.Left, rect.Bottom - rect.Top, 0);
-                    notepads[hWnd] = rect; 
+                    notepads[hWnd] = rect;
                 }
             }
         }
 
-        static async Task UpdateWindowPosition(WindowData windowData, Dictionary<IntPtr, WindowComunication.RECT> windowStates)
+        static private async Task UpdateWindowPosition(WindowData windowData, Dictionary<IntPtr, WindowComunication.RECT> windowStates)
         {
             try
             {

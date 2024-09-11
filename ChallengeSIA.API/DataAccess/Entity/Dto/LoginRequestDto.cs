@@ -1,4 +1,4 @@
-﻿namespace ChallengeSIA.API.Dto
+﻿namespace DataAccess.Entity.Dto
 {
     public class LoginRequestDto
     {

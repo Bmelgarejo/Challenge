@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using DataAccess.Entity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChallengeSIA.API.Data
@@ -9,5 +10,6 @@ namespace ChallengeSIA.API.Data
         {
         }
 
+        public DbSet<Position> Positions { get; set; }
     }
 }

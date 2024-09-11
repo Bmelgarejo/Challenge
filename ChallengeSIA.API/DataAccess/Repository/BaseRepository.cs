@@ -1,9 +1,9 @@
 ﻿using ChallengeSIA.API.Data;
-using ChallengeSIA.API.Repository.IRepository;
+using DataAccess.Repository.IRepository;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace ChallengeSIA.API.Repository
+namespace DataAccess.Repository
 {
     public class BaseRepository<T> : IBaseRepository<T> where T : class
     {
