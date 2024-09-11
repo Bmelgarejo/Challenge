@@ -7,21 +7,21 @@ import { LoginComponent } from './user/login/login.component';
 import { RegisterComponent } from './user/register/register.component';
 import { FormsModule } from '@angular/forms';
 import { HomeComponent } from './home/home.component';
-import { AngularDraggableModule } from 'angular2-draggable';
+import { ListComponent } from './user/list/list.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     RegisterComponent,
-    HomeComponent
+    HomeComponent,
+    ListComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
-    FormsModule,
-    AngularDraggableModule   
+    FormsModule  
   ],
   providers: [],
   bootstrap: [AppComponent]

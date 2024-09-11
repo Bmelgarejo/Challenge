@@ -9,5 +9,10 @@
          }"
          (mousedown)="onMouseDown($event, window)">
       {{ window.WindowType }}
+      
+    </div>  
+    <div>
+      <a [routerLink]="['/user/list']">Ver Lista de Usuarios</a>
     </div>
   </div>
+  

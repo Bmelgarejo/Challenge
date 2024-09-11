@@ -12,7 +12,7 @@ namespace ChallengeSIA.Server.Model
     {
         private static Dictionary<IntPtr, WindowComunication.RECT> notepads = new Dictionary<IntPtr, WindowComunication.RECT>();
         private static IPositionService _positionService;
-
+        private static WebSocket _webSocket;
         public WebSocketComunication(IPositionService positionService)
         {
             _positionService = positionService;
@@ -33,6 +33,7 @@ namespace ChallengeSIA.Server.Model
                 {
                     HttpListenerWebSocketContext wsContext = await context.AcceptWebSocketAsync(null);
                     WebSocket webSocket = wsContext.WebSocket;
+                    _webSocket = wsContext.WebSocket;
                     _ = Task.Run(() => MonitorNotepadWindows(notepads, webSocket));
                     _ = Task.Run(() => ReceiveMessages(webSocket, notepads));
                 }
@@ -137,6 +138,8 @@ namespace ChallengeSIA.Server.Model
 
             if (notepadInstances.Count >= maxInstances)
             {
+                sendNotepads();
+
                 Console.WriteLine("Ya hay dos instancias de Notepad abiertas.");
                 return;
             }
@@ -183,6 +186,29 @@ namespace ChallengeSIA.Server.Model
                         rect.Right - rect.Left, rect.Bottom - rect.Top, 0);
                     notepads[hWnd] = rect;
                 }
+
+            }
+            sendNotepads();
+        }
+
+        private static void sendNotepads()
+        {
+            foreach (var notepad in notepads)
+            {
+                var window = new WindowData
+                {
+                    WindowType = notepad.Key.ToString("X"),
+                    Position = new Position
+                    {
+                        Bottom = notepad.Value.Bottom,
+                        Left = notepad.Value.Left,
+                        Right = notepad.Value.Right,
+                        Top = notepad.Value.Top,
+                    }
+                };
+                string jsonString = JsonSerializer.Serialize(window);
+                var messageBytes = Encoding.UTF8.GetBytes(jsonString);
+                _webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
 

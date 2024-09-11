@@ -4,6 +4,7 @@ using DataAccess.Repository.IRepository;
 using DataAccess.Service.IService;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using System.Data;
 
 namespace DataAccess.Service
 {
@@ -13,14 +14,16 @@ namespace DataAccess.Service
         private readonly IBaseRepository<IdentityUser> _baseRepository;
         private readonly ILogger<UserService> _logger;
         private readonly IMapper _mapper;
+        private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
         public UserService(UserManager<IdentityUser> userManager, IBaseRepository<IdentityUser> baseRepository,
-                           ILogger<UserService> logger, IMapper mapper)
+                           ILogger<UserService> logger, IMapper mapper, IJwtTokenGenerator jwtTokenGenerator)
         {
             _userManager = userManager;
             _baseRepository = baseRepository;
             _logger = logger;
             _mapper = mapper;
+            _jwtTokenGenerator = jwtTokenGenerator;
         }
 
         public async Task<LoginResponseDto> Login(LoginRequestDto loginRequestDto)
@@ -36,11 +39,15 @@ namespace DataAccess.Service
                     return new LoginResponseDto() { User = null };
                 }
 
+                var roles = await _userManager.GetRolesAsync(user);
+                var token = _jwtTokenGenerator.GenerateToken(user, roles);
+
                 UserDto userDTO = _mapper.Map<UserDto>(user);
 
                 LoginResponseDto loginResponseDto = new LoginResponseDto()
                 {
                     User = userDTO,
+                    Token = token
                 };
 
                 return loginResponseDto;

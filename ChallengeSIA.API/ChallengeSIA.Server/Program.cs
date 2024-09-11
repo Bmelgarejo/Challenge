@@ -29,12 +29,10 @@ namespace WindowMonitor
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    // Configuración del ApplicationDbContext
                     var connectionString = context.Configuration.GetConnectionString("DefaultConnection");
                     services.AddDbContext<ApplicationDbContext>(options =>
                         options.UseSqlServer(connectionString));
 
-                    // Registramos los servicios
                     services.AddScoped<IPositionService, PositionService>();
                 });
     }

@@ -1,5 +1,6 @@
 ﻿using DataAccess.Entity.Dto;
 using DataAccess.Service.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ChallengeSIA.Controllers
@@ -60,6 +61,7 @@ namespace ChallengeSIA.Controllers
             }
         }
 
+        [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] UserDto userDto)
         {
@@ -80,7 +82,7 @@ namespace ChallengeSIA.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
         }
-
+        [Authorize]
         [HttpDelete("remove/{email}")]
         public async Task<IActionResult> Remove(string email)
         {
@@ -101,7 +103,7 @@ namespace ChallengeSIA.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
         }
-
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> Get(string email)
         {
@@ -123,7 +125,7 @@ namespace ChallengeSIA.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
         }
-
+        [Authorize]
         [HttpGet("getAll")]
         public async Task<IActionResult> GetAll()
         {
