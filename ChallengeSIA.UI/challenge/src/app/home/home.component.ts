@@ -22,17 +22,12 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.openNotepad();
     this.webSocketService.messages.subscribe((data: WindowData[]) => {
-      this.windows = data;
+      this.windows = data.filter(p => p.Position != null);
       this.initializeWindows();
-    });
-
- 
+    }); 
   }
 
   initializeWindows() {
-    this.windows.forEach(windowData => {
-      this.addWindow(windowData);
-    });
     this.checkAndAdjustOverlap(); 
   }
 
@@ -44,11 +39,14 @@ export class HomeComponent implements OnInit {
     await this.webSocketService.sendMessage(windowData);
   }
 
-  addWindow(windowData: WindowData) {
-    if (!windowData.Position) {
-      windowData.Position = { Left: 0, Top: 0, Right: 200, Bottom: 200 };
-    }
-    this.windows.push(windowData);
+  async closeWindow(windowToClose: WindowData) {
+    this.windows = this.windows.filter(window => window !== windowToClose);
+    const windowData: WindowData = {
+      WindowType: windowToClose.WindowType,
+      Position: null 
+    };
+    this.webSocketService.removeWindow(windowToClose.WindowType);
+    await this.webSocketService.sendMessage(windowData);
   }
 
   async sendWindowPositionUpdate(window: WindowData) {

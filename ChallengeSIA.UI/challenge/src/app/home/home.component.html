@@ -1,18 +1,23 @@
 <div #container id="container">
-    <div *ngFor="let window of windows"
-         class="window"
-         [ngStyle]="{
-           'left.px': window.Position.Left,
-           'top.px': window.Position.Top,
-           'width.px': window.Position.Right - window.Position.Left,
-           'height.px': window.Position.Bottom - window.Position.Top
-         }"
-         (mousedown)="onMouseDown($event, window)">
-      {{ window.WindowType }}
-      
-    </div>  
-    <div>
-      <a [routerLink]="['/user/list']">Ver Lista de Usuarios</a>
+  <div *ngFor="let window of windows"
+       class="window"
+       [ngStyle]="{
+         'left.px': window.Position.Left,
+         'top.px': window.Position.Top,
+         'width.px': window.Position.Right - window.Position.Left,
+         'height.px': window.Position.Bottom - window.Position.Top
+       }"
+       (mousedown)="onMouseDown($event, window)">
+    {{ window.WindowType }}
+    <button (click)="closeWindow(window)">Cerrar</button>
+  </div>
+  <div class="row"> 
+    <div class="col-md-1">
+      <button (click)="openNotepad()">Abrir notepads</button>
     </div>
+  <div class="col-md-2">
+    <a [routerLink]="['/user/list']">Ver Lista de Usuarios</a>
   </div>
   
+</div> 
+</div>

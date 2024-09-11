@@ -24,6 +24,8 @@ export class WebSocketService {
 
     this.socket.onmessage = (event: MessageEvent) => {
       try {
+      console.log("Hola evento", event)
+
         const data: WindowData = JSON.parse(event.data);
         this.updateWindowData(data);
       } catch (error) {
@@ -65,7 +67,7 @@ export class WebSocketService {
     updatedData.push(data);
     this.messageSubject.next(updatedData);
   }
-
+  
   sendMessage(data: WindowData): Promise<void> {
     return new Promise((resolve, reject) => {
       const send = () => {
@@ -88,4 +90,19 @@ export class WebSocketService {
       send(); 
     });
   }
+
+  public removeWindow(windowType: string): void {
+    const currentData = this.messageSubject.value;
+    const updatedData = currentData.filter(window => window.WindowType !== windowType); // Filtra y elimina la ventana cerrada
+    this.messageSubject.next(updatedData); // Actualiza el BehaviorSubject con la nueva lista
+  }
+
+  private receiveWindowData(event: MessageEvent): void {
+    try {
+      const data: WindowData = JSON.parse(event.data);
+    } catch (error) {
+      console.error('Error parsing WebSocket message:', error);
+    }
+  }
+  
 }

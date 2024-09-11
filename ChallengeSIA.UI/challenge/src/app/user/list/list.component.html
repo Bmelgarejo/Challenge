@@ -9,7 +9,7 @@
           <th>Email</th>
           <th>Phone Number</th>
           <th>User Name</th>
-          <th>Acciones</th>
+          <th colspan="2">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -22,17 +22,16 @@
             <input type="text" [(ngModel)]="user.userName" />
           </td>
           <td>
-            <!-- Botón para guardar los cambios de edición -->
             <button class="btn btn-success btn-sm" (click)="updateUser(user)">Guardar</button>
-            <!-- Botón para eliminar el usuario, abre el popup -->
-            <button class="btn btn-danger btn-sm" (click)="openDeletePopup(user)">Eliminar</button>
           </td>
+        <td>
+          <button class="btn btn-danger btn-sm" (click)="openDeletePopup(user)">Eliminar</button>
+        </td>
         </tr>
       </tbody>
     </table>
-</div>
+  </div>
 
-<!-- Popup de confirmación de eliminación -->
 <div class="modal" tabindex="-1" role="dialog" [ngClass]="{ 'show d-block': isDeletePopupOpen }" *ngIf="isDeletePopupOpen">
   <div class="modal-dialog" role="document">
     <div class="modal-content">    

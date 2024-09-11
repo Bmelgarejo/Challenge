@@ -2,6 +2,7 @@
 using DataAccess.Entity;
 using DataAccess.Service.IService;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace DataAccess.Service
 {
@@ -35,6 +36,7 @@ namespace DataAccess.Service
             }
             else
             {
+                if(!string.IsNullOrEmpty(position.Type))
                 _context.Positions.Add(position);
             }
 

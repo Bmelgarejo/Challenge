@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -91,8 +92,13 @@ builder.Services.AddSwaggerGen(c =>
                 In = ParameterLocation.Header,
             },
             new List<string>()
+
         }
+
     });
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
 });
 
 builder.Services.AddScoped<IUserService, UserService>();
@@ -108,8 +114,13 @@ app.UseCors("AllowSpecificOrigin");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "ChallengeSIA API v1");
+        c.RoutePrefix = "swagger"; // Swagger UI at the root
+    });
 }
+
 
 app.UseHttpsRedirection();
 

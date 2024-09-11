@@ -18,6 +18,11 @@ namespace ChallengeSIA.Controllers
             _response = new();
         }
 
+        /// <summary>
+        /// Inicia sesión en el sistema.
+        /// </summary>
+        /// <param name="model">Modelo de solicitud de inicio de sesión.</param>
+        /// <returns>Token de acceso y datos del usuario si el inicio de sesión es exitoso.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDto model)
         {
@@ -40,6 +45,11 @@ namespace ChallengeSIA.Controllers
             }
         }
 
+        /// <summary>
+        /// Registra un nuevo usuario en el sistema.
+        /// </summary>
+        /// <param name="model">Datos del usuario a registrar.</param>
+        /// <returns>Resultado de la operación de registro.</returns>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegistrationRequestDto model)
         {
@@ -61,6 +71,11 @@ namespace ChallengeSIA.Controllers
             }
         }
 
+        /// <summary>
+        /// Actualiza los datos de un usuario existente.
+        /// </summary>
+        /// <param name="userDto">Datos actualizados del usuario.</param>
+        /// <returns>Resultado de la operación de actualización.</returns>
         [Authorize]
         [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] UserDto userDto)
@@ -82,6 +97,12 @@ namespace ChallengeSIA.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
         }
+
+        /// <summary>
+        /// Elimina un usuario por su dirección de correo electrónico.
+        /// </summary>
+        /// <param name="email">Correo electrónico del usuario a eliminar.</param>
+        /// <returns>Resultado de la operación de eliminación.</returns>
         [Authorize]
         [HttpDelete("remove/{email}")]
         public async Task<IActionResult> Remove(string email)
@@ -103,6 +124,12 @@ namespace ChallengeSIA.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
         }
+
+        /// <summary>
+        /// Obtiene los datos de un usuario por su dirección de correo electrónico.
+        /// </summary>
+        /// <param name="email">Correo electrónico del usuario a obtener.</param>
+        /// <returns>Datos del usuario.</returns>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Get(string email)
@@ -125,6 +152,11 @@ namespace ChallengeSIA.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, _response);
             }
         }
+
+        /// <summary>
+        /// Obtiene todos los usuarios del sistema.
+        /// </summary>
+        /// <returns>Lista de todos los usuarios.</returns>
         [Authorize]
         [HttpGet("getAll")]
         public async Task<IActionResult> GetAll()

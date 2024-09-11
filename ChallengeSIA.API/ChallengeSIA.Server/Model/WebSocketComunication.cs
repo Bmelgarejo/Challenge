@@ -1,8 +1,10 @@
 ﻿using DataAccess.Entity;
 using DataAccess.Service.IService;
+using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
 using System.Net;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 
@@ -10,15 +12,16 @@ namespace ChallengeSIA.Server.Model
 {
     public class WebSocketComunication
     {
-        private static Dictionary<IntPtr, WindowComunication.RECT> notepads = new Dictionary<IntPtr, WindowComunication.RECT>();
+        private static Dictionary<IntPtr, WindowComunication.RECT> notepadWindows = new Dictionary<IntPtr, WindowComunication.RECT>();
         private static IPositionService _positionService;
         private static WebSocket _webSocket;
+
         public WebSocketComunication(IPositionService positionService)
         {
             _positionService = positionService;
         }
 
-        static public async Task StartServerAsync(IPositionService positionService)
+        public static async Task StartServerAsync(IPositionService positionService)
         {
             _positionService = positionService;
             HttpListener listener = new HttpListener();
@@ -34,66 +37,105 @@ namespace ChallengeSIA.Server.Model
                     HttpListenerWebSocketContext wsContext = await context.AcceptWebSocketAsync(null);
                     WebSocket webSocket = wsContext.WebSocket;
                     _webSocket = wsContext.WebSocket;
-                    _ = Task.Run(() => MonitorNotepadWindows(notepads, webSocket));
-                    _ = Task.Run(() => ReceiveMessages(webSocket, notepads));
+                    _ = Task.Run(() => MonitorNotepadWindows(webSocket));
+                    _ = Task.Run(() => ReceiveMessages(webSocket));
                 }
             }
         }
-        static private async Task MonitorNotepadWindows(Dictionary<IntPtr, WindowComunication.RECT> windowStates, WebSocket webSocket)
+
+        private static async Task MonitorNotepadWindows(WebSocket webSocket)
         {
             while (webSocket.State == WebSocketState.Open)
             {
-                WindowComunication.EnumWindows((hWnd, lParam) =>
+                try
                 {
-                    StringBuilder className = new StringBuilder(256);
-                    WindowComunication.GetClassName(hWnd, className, className.Capacity);
+                    List<IntPtr> closedWindows = new List<IntPtr>();
 
-                    if (className.ToString().Contains("Notepad"))
+                    WindowComunication.EnumWindows((hWnd, lParam) =>
                     {
-                        WindowComunication.RECT rect;
-                        if (WindowComunication.GetWindowRect(hWnd, out rect))
+                        var className = new StringBuilder(256);
+                        WindowComunication.GetClassName(hWnd, className, className.Capacity);
+
+                        if (className.ToString().Contains("Notepad"))
                         {
-                            if (!windowStates.ContainsKey(hWnd) || !windowStates[hWnd].Equals(rect))
+                            if (WindowComunication.GetWindowRect(hWnd, out var rect))
                             {
-                                windowStates[hWnd] = rect;
-
-                                StringBuilder windowText = new StringBuilder(256);
-                                WindowComunication.GetWindowText(hWnd, windowText, windowText.Capacity);
-
-                                var position = new Position
+                                if (!WindowComunication.IsWindowVisible(hWnd))
                                 {
-                                    Type = windowText.ToString(),
-                                    Left = rect.Left,
-                                    Top = rect.Top,
-                                    Right = rect.Right,
-                                    Bottom = rect.Bottom
-                                };
+                                    closedWindows.Add(hWnd);
+                                    return true;
+                                }
 
-                                _ = _positionService.SavePositionAsync(position);
-
-                                var window = new WindowData
+                                if (notepadWindows.ContainsKey(hWnd) && !notepadWindows[hWnd].Equals(rect))
                                 {
-                                    WindowType = hWnd.ToString("X"),
-                                    Position = position
-                                };
-
-                                string jsonString = JsonSerializer.Serialize(window);
-                                var messageBytes = Encoding.UTF8.GetBytes(jsonString);
-                                _ = webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
-
-                                Console.WriteLine($"Ventana detectada/actualizada: {hWnd.ToString("X")} - Posición: ({rect.Left}, {rect.Top}) Tamaño: ({rect.Right - rect.Left}, {rect.Bottom - rect.Top})");
+                                    notepadWindows[hWnd] = rect;
+                                    var position = CreatePosition(rect, hWnd);
+                                    _ = _positionService.SavePositionAsync(position);
+                                    var windowData = CreateWindowData(hWnd, position);
+                                    _ = SendWindowDataAsync(webSocket, windowData);
+                                    LogWindowUpdate(hWnd, rect);
+                                }
                             }
                         }
-                    }
-                    return true;
-                }, IntPtr.Zero);
+
+                        return true;
+                    }, IntPtr.Zero);
+
+                    CheckClosedNotepadInstances();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error al monitorear las ventanas: {ex.Message}");
+                }
 
                 await Task.Delay(1000);
             }
         }
 
+        private static void LogWindowClosed(IntPtr hWnd)
+        {
+            Console.WriteLine($"Ventana cerrada: {hWnd.ToString("X")}");
+        }
 
-        static private async Task ReceiveMessages(WebSocket webSocket, Dictionary<IntPtr, WindowComunication.RECT> windowStates)
+
+        private static Position CreatePosition(WindowComunication.RECT rect, IntPtr hWnd)
+        {
+            var windowText = new StringBuilder(256);
+            WindowComunication.GetWindowText(hWnd, windowText, windowText.Capacity);
+
+            return new Position
+            {
+                Type = windowText.ToString(),
+                Left = rect.Left,
+                Top = rect.Top,
+                Right = rect.Right,
+                Bottom = rect.Bottom
+            };
+        }
+
+        private static WindowData CreateWindowData(IntPtr hWnd, Position position)
+        {
+            return new WindowData
+            {
+                WindowType = hWnd.ToString("X"),
+                Position = position
+            };
+        }
+
+        private static async Task SendWindowDataAsync(WebSocket webSocket, WindowData windowData)
+        {
+            string jsonString = JsonSerializer.Serialize(windowData);
+            Console.WriteLine($"Enviando data: {jsonString}");
+            var messageBytes = Encoding.UTF8.GetBytes(jsonString);
+            await webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+        }
+
+        private static void LogWindowUpdate(IntPtr hWnd, WindowComunication.RECT rect)
+        {
+            Console.WriteLine($"Ventana detectada/actualizada: {hWnd.ToString("X")} - Posición: ({rect.Left}, {rect.Top}) Tamaño: ({rect.Right - rect.Left}, {rect.Bottom - rect.Top})");
+        }
+
+        private static async Task ReceiveMessages(WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
             while (webSocket.State == WebSocketState.Open)
@@ -113,9 +155,13 @@ namespace ChallengeSIA.Server.Model
 
                         if (windowData != null)
                         {
-                            if (!string.IsNullOrEmpty(windowData.WindowType))
+                            if (windowData.Position == null && !string.IsNullOrEmpty(windowData.WindowType))
                             {
-                                await UpdateWindowPosition(windowData, windowStates);
+                                await CloseWindow(windowData);
+                            }
+                            else if (!string.IsNullOrEmpty(windowData.WindowType))
+                            {
+                                await UpdateWindowPosition(windowData);
                             }
                             else
                             {
@@ -131,22 +177,104 @@ namespace ChallengeSIA.Server.Model
             }
         }
 
-        static private async Task OpenNotepadInstances()
+        private static async Task CloseWindow(WindowData windowData)
+        {
+            try
+            {
+                IntPtr hWnd = (IntPtr)Convert.ToInt64(windowData.WindowType, 16);
+
+                if (hWnd != IntPtr.Zero)
+                {
+                   
+                    // Obtener el proceso asociado con la ventana
+                    Process process = WindowComunication.GetProcessFromWindow(hWnd);
+                    if (process != null)
+                    {
+                        try
+                        {
+                            WindowComunication.PostMessage(process.MainWindowHandle, WindowComunication.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+                            process.WaitForExit(); // Esperar a que el proceso se cierre
+                            process.Kill();
+
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Acceso denegado al intentar cerrar el proceso: {process.Id}");
+                            // Si acceso denegado, intentar con TerminateProcess
+                            TerminateProcess(process.Handle);
+                        }
+                    }
+
+                    notepadWindows.Remove(hWnd);
+
+                    Console.WriteLine($"Ventana y proceso cerrados: {windowData.WindowType}");
+                }
+                else
+                {
+                    Console.WriteLine($"Ventana no encontrada: {windowData.WindowType}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al cerrar la ventana: {ex.Message}");
+            }
+        }
+        private static void TerminateProcess(IntPtr processHandle)
+        {
+
+            if (!WindowComunication.TerminateProcess(processHandle, 1))
+            {
+                Console.WriteLine($"No se pudo terminar el proceso. Código de error: {Marshal.GetLastWin32Error()}");
+            }
+        }
+
+
+        private static async Task UpdateWindowPosition(WindowData windowData)
+        {
+            try
+            {
+                WindowComunication.RECT newRect = new WindowComunication.RECT
+                {
+                    Left = windowData.Position.Left,
+                    Top = windowData.Position.Top,
+                    Right = windowData.Position.Right,
+                    Bottom = windowData.Position.Bottom
+                };
+
+                IntPtr hWnd = (IntPtr)Convert.ToInt64(windowData.WindowType, 16);
+
+                if (hWnd != IntPtr.Zero && notepadWindows.ContainsKey(hWnd))
+                {
+                    WindowComunication.SetWindowPos(hWnd, IntPtr.Zero, newRect.Left, newRect.Top, newRect.Right - newRect.Left, newRect.Bottom - newRect.Top, 0);
+                    notepadWindows[hWnd] = newRect;
+
+                    LogWindowUpdate(hWnd, newRect);
+                }
+                else
+                {
+                    Console.WriteLine($"Ventana no encontrada: {windowData.WindowType}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error al actualizar la posición de la ventana: {ex.Message}");
+            }
+        }
+
+        private static async Task OpenNotepadInstances()
         {
             var maxInstances = 2;
             var notepadInstances = WindowComunication.FindOpenNotepads("Sin titulo");
 
             if (notepadInstances.Count >= maxInstances)
             {
-                sendNotepads();
-
+                SendNotepadDataToClients();
                 Console.WriteLine("Ya hay dos instancias de Notepad abiertas.");
                 return;
             }
 
             var instancesToOpen = maxInstances - notepadInstances.Count;
 
-            // Intentar recuperar las últimas posiciones guardadas
             List<Position> lastPositions = await _positionService.GetLastPositionsAsync();
 
             var positions = new[]
@@ -181,67 +309,76 @@ namespace ChallengeSIA.Server.Model
 
                 if (hWnd != IntPtr.Zero)
                 {
-                    var rect = positions[i];
-                    WindowComunication.SetWindowPos(hWnd, IntPtr.Zero, rect.Left, rect.Top,
-                        rect.Right - rect.Left, rect.Bottom - rect.Top, 0);
-                    notepads[hWnd] = rect;
-                }
-
-            }
-            sendNotepads();
-        }
-
-        private static void sendNotepads()
-        {
-            foreach (var notepad in notepads)
-            {
-                var window = new WindowData
-                {
-                    WindowType = notepad.Key.ToString("X"),
-                    Position = new Position
+                    if (WindowComunication.IsWindowVisible(hWnd))
                     {
-                        Bottom = notepad.Value.Bottom,
-                        Left = notepad.Value.Left,
-                        Right = notepad.Value.Right,
-                        Top = notepad.Value.Top,
+                        var rect = positions[i];
+                        WindowComunication.SetWindowPos(hWnd, IntPtr.Zero, rect.Left, rect.Top,
+                            rect.Right - rect.Left, rect.Bottom - rect.Top, 0);
+                        notepadWindows[hWnd] = rect;
                     }
-                };
-                string jsonString = JsonSerializer.Serialize(window);
-                var messageBytes = Encoding.UTF8.GetBytes(jsonString);
-                _webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+                    else
+                    {
+                        notepadWindows.Remove(hWnd);
+                        process.Kill();
+                    }
+                }
             }
+
+            SendNotepadDataToClients();
         }
 
-        static private async Task UpdateWindowPosition(WindowData windowData, Dictionary<IntPtr, WindowComunication.RECT> windowStates)
+
+        private static void SendNotepadDataToClients()
         {
-            try
+            foreach (var notepad in notepadWindows)
             {
-                WindowComunication.RECT newRect = new WindowComunication.RECT
+                var windowData = CreateWindowData(notepad.Key, new Position
                 {
-                    Left = windowData.Position.Left,
-                    Top = windowData.Position.Top,
-                    Right = windowData.Position.Right,
-                    Bottom = windowData.Position.Bottom
-                };
+                    Bottom = notepad.Value.Bottom,
+                    Left = notepad.Value.Left,
+                    Right = notepad.Value.Right,
+                    Top = notepad.Value.Top,
+                });
 
-                IntPtr hWndRecovered = (IntPtr)Convert.ToInt64(windowData.WindowType, 16);
-
-                if (hWndRecovered != IntPtr.Zero)
-                {
-                    WindowComunication.SetWindowPos(hWndRecovered, IntPtr.Zero, newRect.Left, newRect.Top, newRect.Right - newRect.Left, newRect.Bottom - newRect.Top, 0);
-                    windowStates[hWndRecovered] = newRect;
-
-                    Console.WriteLine($"Ventana actualizada: {windowData.WindowType} - Posición: ({newRect.Left}, {newRect.Top}) Tamaño: ({newRect.Right - newRect.Left}, {newRect.Bottom - newRect.Top})");
-                }
-                else
-                {
-                    Console.WriteLine($"Ventana no encontrada: {windowData.WindowType}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al actualizar la posición de la ventana: {ex.Message}");
+                string jsonString = JsonSerializer.Serialize(windowData);
+                var messageBytes = Encoding.UTF8.GetBytes(jsonString);
+                _ = _webSocket.SendAsync(new ArraySegment<byte>(messageBytes), WebSocketMessageType.Text, true, CancellationToken.None);
             }
         }
+
+        private static async Task CheckClosedNotepadInstances()
+        {
+            var notepadInstances = WindowComunication.FindOpenNotepads("Sin titulo");
+
+            var windowsToRemove = new List<IntPtr>();
+
+            foreach (var notepadWindow in notepadWindows)
+            {
+                if (!notepadInstances.Contains(notepadWindow.Key))
+                {
+                    windowsToRemove.Add(notepadWindow.Key);
+
+                    await SendWindowClosedData(notepadWindow.Key);
+
+                    Console.WriteLine($"Ventana cerrada detectada: {notepadWindow.Key.ToString("X")}");
+                }
+            }
+
+            foreach (var hWnd in windowsToRemove)
+            {
+                notepadWindows.Remove(hWnd);
+            }
+        }
+        private static async Task SendWindowClosedData(IntPtr hWnd)
+        {
+            var windowData = new WindowData
+            {
+                WindowType = hWnd.ToString("X"),
+                Position = null
+            };
+
+            await SendWindowDataAsync(_webSocket, windowData);
+        }
+
     }
 }
