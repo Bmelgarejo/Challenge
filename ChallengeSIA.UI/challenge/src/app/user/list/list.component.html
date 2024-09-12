@@ -1,0 +1,50 @@
+<div class="container">
+    <div>
+        <a [routerLink]="['/home']">Volver</a>
+      </div>
+    <h1 class="my-4">Lista de Usuarios</h1>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Phone Number</th>
+          <th>User Name</th>
+          <th colspan="2">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.email }}</td>
+          <td>
+            <input type="text" [(ngModel)]="user.phoneNumber" />
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="user.userName" />
+          </td>
+          <td>
+            <button class="btn btn-success btn-sm" (click)="updateUser(user)">Guardar</button>
+          </td>
+        <td>
+          <button class="btn btn-danger btn-sm" (click)="openDeletePopup(user)">Eliminar</button>
+        </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+<div class="modal" tabindex="-1" role="dialog" [ngClass]="{ 'show d-block': isDeletePopupOpen }" *ngIf="isDeletePopupOpen">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">    
+      <div class="modal-body">
+        <p>¿Estás seguro de que deseas eliminar el usuario {{ selectedUser?.email }}?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" (click)="confirmDeleteUser()">Eliminar</button>
+        <button type="button" class="btn btn-secondary" (click)="closeDeletePopup()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+

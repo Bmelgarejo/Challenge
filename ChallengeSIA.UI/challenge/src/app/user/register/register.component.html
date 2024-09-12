@@ -1,0 +1,73 @@
+<div class="container justify-content-center align-items-center min-vh-100">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card p-4 shadow">
+        <h1 class="text-center mb-4">Register</h1>
+        <form (ngSubmit)="register()">
+          <div class="form-group">
+            <input
+              id="email"
+              type="email"
+              class="form-control"
+              [(ngModel)]="email"
+              name="email"
+              placeholder="Enter your email"
+              required
+            />
+          </div>
+          <div class="form-group my-4" >
+            <input
+              id="name"
+              type="text"
+              class="form-control"
+              [(ngModel)]="name"
+              name="name"
+              placeholder="Enter your name"
+              required
+            />
+          </div>
+          <div class="form-group  my-4">
+            <input
+              id="phoneNumber"
+              type="text"
+              class="form-control"
+              [(ngModel)]="phoneNumber"
+              name="phoneNumber"
+              placeholder="Enter your phone number"
+              required
+            />
+          </div>
+          <div class="form-group  my-4">
+            <input
+              id="password"
+              type="password"
+              class="form-control"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <div class="form-group  my-4">
+            <input
+              id="confirmPassword"
+              type="password"
+              class="form-control"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              placeholder="Confirm your password"
+              required
+            />
+          </div>
+          <br>
+          <button type="submit" class="btn btn-primary btn-block">Register</button>
+        </form>
+        <p *ngIf="errorMessage" class="text-danger text-center mt-3">{{ errorMessage }}</p>
+        <p *ngIf="successMessage" class="text-success text-center mt-3">{{ successMessage }}</p>
+        <div class="text-center mt-4">
+          <button (click)="goToLogin()" class="btn btn-link">Go to Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
