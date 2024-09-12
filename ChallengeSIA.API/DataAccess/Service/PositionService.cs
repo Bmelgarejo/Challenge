@@ -27,7 +27,6 @@ namespace DataAccess.Service
 
             if (existingPosition != null)
             {
-                // Actualiza la posición existente
                 existingPosition.Left = position.Left;
                 existingPosition.Top = position.Top;
                 existingPosition.Right = position.Right;

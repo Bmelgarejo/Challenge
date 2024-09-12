@@ -26,8 +26,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
   private layer!: Konva.Layer;
   private transformer!: Konva.Transformer;
   private selectedShape: Konva.Shape | null = null;
-  private shapes: Konva.Shape[] = []; // Para almacenar las formas
-  windows: WindowData[] = []; // Para almacenar la información de ventanas
+  private shapes: Konva.Shape[] = []; 
+  windows: WindowData[] = []; 
   shapesCreated: boolean = false;
   constructor(private webSocketService: WebSocketService) { }
   
@@ -41,7 +41,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.initializeStage();
-    this.openNotepad(); // Crear rectángulos iniciales
+    this.openNotepad(); 
     
   }
 
@@ -59,7 +59,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.transformer = new Konva.Transformer({
       resizeEnabled: true,
-      rotateEnabled: false, // Desactiva la rotación si no la necesitas
+      rotateEnabled: false, 
       borderEnabled: true,
       anchorSize: 10,
       borderStrokeWidth: 1,
@@ -68,7 +68,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
     this.layer.add(this.transformer);
 
-    // Agregar manejadores de eventos
     this.stage.on('click', this.onStageClick.bind(this));
     this.stage.on('dragstart', this.onDragStart.bind(this));
     this.stage.on('dragend', this.onDragEnd.bind(this));
@@ -76,7 +75,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   async openNotepad() {
     this.shapesCreated = false;
-    // Crear dos rectángulos de ejemplo con datos de windowsData
     const windowData: WindowData = {
       WindowType: "",
       Position: null 
@@ -85,10 +83,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   }
   removeOutdatedShapes() {
-    // Obtén los tipos de ventanas actuales
     const currentWindowTypes = this.windows.map(window => window.WindowType);
     
-    // Elimina shapes que ya no están en la lista de windows
     this.shapes.forEach(shape => {
       if (!currentWindowTypes.includes(shape.name())) {
         this.removeShape(shape);
@@ -96,11 +92,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
   }
   updateShapes(): void {
-    if (!this.shapesCreated) { // Verifica si no se han creado las shapes
-      this.createShapesFromWindows(); // Crea las shapes solo una vez
-      this.shapesCreated = this.windows.length == 2 ? true: false; // Marca que las shapes ya han sido creadas
+    if (!this.shapesCreated) { 
+      this.createShapesFromWindows(); 
+      this.shapesCreated = this.windows.length == 2 ? true: false; 
     }else {
-      // Si ya se han creado, actualiza su posición
       this.updateShapePositions();
       this.removeOutdatedShapes();
     } 
@@ -108,7 +103,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   }
 
   createShapesFromWindows() {
-    this.layer?.removeChildren(); // Limpiar la capa antes de añadir nuevas formas
+    this.layer?.removeChildren(); 
     this.shapes = [];
 
     this.windows.forEach(windowData => {
@@ -134,15 +129,14 @@ export class HomeComponent implements OnInit, AfterViewInit {
     });
 
     this.layer?.add(this.transformer);
-    this.layer?.batchDraw(); // Asegúrate de redibujar la capa después de añadir las formas
+    this.layer?.batchDraw();
   }
 
   updateShapePositions() {
     this.windows.forEach(windowData => {
-      const shape = this.shapes.filter(x=> x.name() == windowData.WindowType)[0]; // Obtiene la forma asociada al WindowType
+      const shape = this.shapes.filter(x=> x.name() == windowData.WindowType)[0]; 
       if (shape && windowData.Position) {
         const position = windowData.Position;
-        // Actualiza la posición de la forma existente
         shape.x(position.Left);
         shape.y(position.Top);
         shape.width(position.Right - position.Left);
@@ -150,7 +144,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     });
     
-    this.layer?.batchDraw(); // Redibuja la capa después de actualizar las posiciones
+    this.layer?.batchDraw(); 
 
     this.checkOverlapAndBounds();
   }
@@ -165,10 +159,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   removeShape(shape: Konva.Shape) {
     if (shape) {
-      shape.off('click'); // Elimina los manejadores de eventos para evitar problemas
+      shape.off('click');
       shape.destroy(); 
-      this.shapes = this.shapes.filter(s => s !== shape); // Actualiza el array de shapes
-      this.layer?.batchDraw(); // Redibuja la capa
+      this.shapes = this.shapes.filter(s => s !== shape); 
+      this.layer?.batchDraw();
     }
   }
   checkOverlapAndBounds() {
@@ -203,24 +197,23 @@ export class HomeComponent implements OnInit, AfterViewInit {
     const rect1 = shape1.getClientRect();
     const rect2 = shape2.getClientRect();
     
-    // Ajustar la posición del shape1 para evitar la superposición con shape2
     let newX = rect1.x;
     let newY = rect1.y;
 
-    // Recalcular la posición para evitar la superposición
     if (rect1.x < rect2.x) {
-      newX = rect2.x - rect1.width - 10; // Ajustar la posición horizontal
+      newX = rect2.x - rect1.width - 10; 
     } else {
-      newX = rect2.x + rect2.width + 10; // Ajustar la posición horizontal
+      newX = rect2.x + rect2.width + 10; 
     }
 
     if (rect1.y < rect2.y) {
-      newY = rect2.y - rect1.height - 10; // Ajustar la posición vertical
+      newY = rect2.y - rect1.height - 10; 
     } else {
-      newY = rect2.y + rect2.height + 10; // Ajustar la posición vertical
+      newY = rect2.y + rect2.height + 10; 
     }
 
     shape1.position({ x: newX, y: newY });
+    this.onShapeChange();
   }
 
   checkBounds() {
@@ -229,7 +222,6 @@ export class HomeComponent implements OnInit, AfterViewInit {
     this.shapes.forEach(shape => {
       const rect = shape.getClientRect();
       
-      // Asegurarse de que el rectángulo esté completamente dentro del contenedor
       if (rect.x < 0) {
         shape.x(0);
       }
@@ -242,17 +234,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
       if (rect.y + rect.height > stageHeight) {
         shape.y(stageHeight - rect.height);
       }
-      shape.position({ x: shape.x(), y: shape.y() }); // Actualiza la posición
+      shape.position({ x: shape.x(), y: shape.y() }); 
     });
-    this.layer?.batchDraw(); // Redibuja la capa
+    this.layer?.batchDraw(); 
 
-    // Enviar posiciones actualizadas a través de WebSocket
     
   }
 
   selectShape(shape: Konva.Shape) {
     if (this.selectedShape) {
-      this.transformer.nodes([]); // Desvincular el transformador de la forma previamente seleccionada
+      this.transformer.nodes([]); 
     }
 
     this.transformer.nodes([shape]);
@@ -265,47 +256,41 @@ export class HomeComponent implements OnInit, AfterViewInit {
     if (shape instanceof Konva.Rect) {
       this.selectShape(shape);
     } else {
-      this.transformer.nodes([]); // Desvincular el transformador si se hace clic en un área vacía
+      this.transformer.nodes([]); 
       this.selectedShape = null;
     }
   }
   onShapeTransform(shape: Konva.Rect, windowType: string) {
-    // Captura las nuevas dimensiones y posición teniendo en cuenta la escala
     const scaleX = shape.scaleX();
     const scaleY = shape.scaleY();
   
     const updatedPosition = {
       Left: shape.x(),
       Top: shape.y(),
-      Right: shape.x() + shape.width() * scaleX, // Ajuste con la escala X
-      Bottom: shape.y() + shape.height() * scaleY, // Ajuste con la escala Y
+      Right: shape.x() + shape.width() * scaleX, 
+      Bottom: shape.y() + shape.height() * scaleY, 
     };
   
-    // Resetear la escala para evitar problemas acumulativos
     shape.width(shape.width() * scaleX);
     shape.height(shape.height() * scaleY);
     shape.scaleX(1);
     shape.scaleY(1);
   
-    // Envía la información actualizada del tamaño y posición al servidor
     const updatedWindowData: WindowData = {
       WindowType: windowType,
       Position: updatedPosition
     };
   
-    this.sendWindowPositionUpdate(updatedWindowData); // Envía los datos por WebSocket
+    this.sendWindowPositionUpdate(updatedWindowData); 
   
-    // Actualiza la capa para reflejar los cambios
     this.layer?.batchDraw();
   }
   
   onDragStart(event: Konva.KonvaEventObject<DragEvent>) {
-    // Aquí puedes manejar eventos adicionales al comenzar a arrastrar si es necesario
   }
 
   onDragEnd(event: Konva.KonvaEventObject<DragEvent>) {
-    // Aquí puedes manejar eventos adicionales al terminar de arrastrar si es necesario
-    this.layer.batchDraw(); // Redibuja la capa para asegurarse de que el estado del transformador esté actualizado
+    this.layer.batchDraw(); 
   }
 
   onShapeChange() {   
@@ -314,7 +299,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
 
   sendUpdatedPositions() {
     const windowData: WindowData[] = this.shapes.map(shape => ({
-      WindowType: shape.name(), // Usa un tipo adecuado
+      WindowType: shape.name(), 
       Position: {
         Left: shape.x(),
         Top: shape.y(),
@@ -336,13 +321,11 @@ export class HomeComponent implements OnInit, AfterViewInit {
       Bottom: this.roundValue(window.Position.Bottom)
     };
   
-    // Crear una copia del objeto window con la posición redondeada
     const updatedWindow: WindowData = {
       WindowType: window.WindowType,
       Position: roundedPosition
     };
 
-    // Enviar el mensaje con la posición redondeada
     await this.webSocketService.sendMessage(updatedWindow);
   }
   roundValue(value: number, decimals: number = 0): number {
@@ -358,8 +341,8 @@ export class HomeComponent implements OnInit, AfterViewInit {
       fill: color,
       stroke: 'black',
       strokeWidth: 2,
-      draggable: true, // Hacer el rectángulo arrastrable,
-      name: id // Asignar un nombre (o id) único a la forma
+      draggable: true, 
+      name: id 
     });
 
     return rect;

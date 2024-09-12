@@ -6,12 +6,12 @@
 
 .button-container {
   position: absolute;
-  top: 10px; /* Ajusta según sea necesario */
-  right: 10px; /* Ajusta según sea necesario */
+  top: 10px; 
+  right: 10px; 
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Espacio entre los botones */
-  z-index: 1000; /* Asegúrate de que los botones estén por encima del canvas */
+  gap: 10px; 
+  z-index: 1000; 
 }
 
 .button-container a {
@@ -25,5 +25,5 @@
 }
 
 .button-container a {
-  background-color: #28a745; /* Color del enlace si es diferente */
+  background-color: #28a745; 
 }
