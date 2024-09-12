@@ -1,6 +1,6 @@
 # ChallengeSIA
 
-Este proyecto consiste en una aplicación web desarrollada en Angular que se conecta a un backend en .NET a través de WebSockets. La aplicación permite gestionar instancias de Notepad.exe, reflejando su posición y tamaño en la interfaz de usuario y sincronizando estos datos con el servidor.
+Este proyecto consiste en una aplicación web desarrollada en Angular que se conecta a un backend en .NET a través de WebSockets. La aplicación permite gestionar instancias de Notepad.exe, reflejando su posición, tamaño en la interfaz de usuario y sincronizando estos datos con el servidor.
 
 ## Tabla de Contenidos
 
@@ -18,7 +18,7 @@ El sistema está compuesto por dos partes principales:
 
 1. **Backend (Servidor WebSocket en .NET):** Maneja la creación, monitoreo y gestión de instancias de Notepad.exe, así como la sincronización de posiciones y tamaños de ventanas. Utiliza WebSocket para comunicarse con la aplicación web Angular.
 
-2. **Frontend (Aplicación Angular):** Proporciona una interfaz de usuario para visualizar y manipular las instancias de Notepad.exe. Permite mover, redimensionar y cerrar las ventanas, reflejando estos cambios en el servidor.
+2. **Frontend (Aplicación Angular):** Proporciona una interfaz de usuario para visualizar y manipular las instancias de Notepad.exe. Utiliza Konva.js para manejar las figuras en el frontend, permitiendo el redimensionamiento y la eliminación de figuras mediante un doble clic.
 
 ### Funcionalidades Clave
 
@@ -26,6 +26,7 @@ El sistema está compuesto por dos partes principales:
 - **Sincronización de Datos:** Sincroniza la posición y tamaño de las ventanas entre el cliente y el servidor.
 - **Interfaz de Usuario:** Visualiza y permite manipular las instancias de Notepad.exe a través de la interfaz web.
 - **Persistencia de Datos:** Guarda la posición y tamaño de las ventanas para restaurarlas al reiniciar.
+- **Manipulación de Figuras:** Utiliza Konva.js para redimensionar y eliminar figuras mediante un doble clic en el frontend.
 
 ## Requisitos
 
@@ -38,6 +39,7 @@ El sistema está compuesto por dos partes principales:
 - **Frontend:**
   - Angular CLI: 11.1.4
   - Node: 10.24.1
+  - Konva.js
 
 ## Guía de Instalación
 
@@ -46,7 +48,7 @@ El sistema está compuesto por dos partes principales:
 1. Clona el repositorio del backend:
 
     ```bash
-    git clone (https://github.com/Bmelgarejo/Challenge.git)
+    git clone https://github.com/Bmelgarejo/Challenge.git
     ```
 
 2. Navega al directorio del backend:
@@ -78,7 +80,7 @@ El sistema está compuesto por dos partes principales:
 1. Clona el repositorio del frontend:
 
     ```bash
-    git clone (https://github.com/Bmelgarejo/Challenge.git)
+    git clone https://github.com/Bmelgarejo/Challenge.git
     ```
 
 2. Navega al directorio del frontend:
@@ -104,9 +106,10 @@ El sistema está compuesto por dos partes principales:
 ## Uso
 
 1. **Iniciar el Servidor WebSocket:** Asegúrate de que el servidor backend esté en ejecución.
-2. **Acceder a la Aplicación Web:** Visita la aplicación Angular en `http://localhost:4200`.
-3. **Login:** Realiza el login para empezar a gestionar las instancias de Notepad.
-4. **Interacción:** Utiliza la interfaz para mover, redimensionar y cerrar las ventanas de Notepad. Los cambios se reflejarán en la interfaz y se sincronizarán con el servidor.
+2. **Iniciar la API:** Asegúrate de que la API esté corriendo en `http://localhost:7161`.
+3. **Acceder a la Aplicación Web:** Visita la aplicación Angular en `http://localhost:4200`.
+4. **Login:** Realiza el login para empezar a gestionar las instancias de Notepad.
+5. **Interacción:** Utiliza la interfaz para mover, redimensionar y cerrar las ventanas de Notepad. Los cambios se reflejarán en la interfaz y se sincronizarán con el servidor.
 
 ## Documentación de la API
 
@@ -154,8 +157,7 @@ La API de usuarios está documentada utilizando Swagger. Puedes acceder a la doc
 
 ### Diagrama de Secuencia de la API
 
- ![image](https://github.com/user-attachments/assets/8601f798-f3b8-4d82-80e1-748454ebdc26)
-
+![image](https://github.com/user-attachments/assets/8601f798-f3b8-4d82-80e1-748454ebdc26)
 
 ### Diagrama de Secuencia del Servidor
 
@@ -167,6 +169,7 @@ La API de usuarios está documentada utilizando Swagger. Puedes acceder a la doc
 - Asegúrate de que el puerto `5000` esté disponible para el servidor WebSocket.
 - La aplicación Angular debe estar en ejecución en el puerto `4200`.
 - La API está protegida por JWT, por lo que es necesario autenticar las solicitudes para acceder a la mayoría de los endpoints.
+- Deben estar corriendo tanto el servidor WebSocket como la API para que el sistema funcione correctamente.
 
 ## Enlaces
 
