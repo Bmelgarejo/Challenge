@@ -18,6 +18,9 @@ namespace ChallengeSIA.Server.Model
             public int Bottom;
         }
 
+        private const uint PROCESS_QUERY_INFORMATION = 0x0400;
+        private const uint PROCESS_VM_READ = 0x0010;
+
         // Definición de EnumWindows callback
         public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
@@ -75,7 +78,14 @@ namespace ChallengeSIA.Server.Model
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool IsWindowVisible(IntPtr hWnd);
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr OpenProcess(uint dwDesiredAccess, bool bInheritHandle, uint dwProcessId);
+
+        [DllImport("kernel32.dll")]
+        public static extern bool CloseHandle(IntPtr hObject);
         public static Process GetProcessFromWindow(IntPtr hWnd)
         {
             int processId;
@@ -107,5 +117,47 @@ namespace ChallengeSIA.Server.Model
             }, IntPtr.Zero);
             return notepads;
         }
+
+        public static Process GetProcessByWindowTitle(string title)
+        {
+            // Encuentra la ventana por su título
+            IntPtr hWnd = FindWindow(null, title);
+            if (hWnd == IntPtr.Zero)
+            {
+                Console.WriteLine("No se encontró la ventana con el título especificado.");
+                return null;
+            }
+
+            // Obtiene el identificador del proceso
+            uint processId;
+            GetWindowThreadProcessId(hWnd, out processId);
+
+            if (processId == 0)
+            {
+                Console.WriteLine("No se pudo obtener el identificador del proceso.");
+                return null;
+            }
+
+            // Abre el proceso
+            IntPtr processHandle = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, false, processId);
+
+            if (processHandle == IntPtr.Zero)
+            {
+                Console.WriteLine("No se pudo abrir el proceso.");
+                return null;
+            }
+
+            try
+            {
+                // Obtiene el proceso
+                return Process.GetProcessById((int)processId);
+            }
+            finally
+            {
+                // Cierra el handle del proceso
+                CloseHandle(processHandle);
+            }
+        }
     }
 }
+

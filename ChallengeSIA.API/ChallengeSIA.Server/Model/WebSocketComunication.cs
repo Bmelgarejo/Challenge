@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
+using static ChallengeSIA.Server.Model.WindowComunication;
 
 namespace ChallengeSIA.Server.Model
 {
@@ -133,6 +134,7 @@ namespace ChallengeSIA.Server.Model
         private static void LogWindowUpdate(IntPtr hWnd, WindowComunication.RECT rect)
         {
             Console.WriteLine($"Ventana detectada/actualizada: {hWnd.ToString("X")} - Posición: ({rect.Left}, {rect.Top}) Tamaño: ({rect.Right - rect.Left}, {rect.Bottom - rect.Top})");
+            
         }
 
         private static async Task ReceiveMessages(WebSocket webSocket)
@@ -249,6 +251,8 @@ namespace ChallengeSIA.Server.Model
                     notepadWindows[hWnd] = newRect;
 
                     LogWindowUpdate(hWnd, newRect);
+                    var position = CreatePosition(newRect, hWnd);
+                    await _positionService.SavePositionAsync(position);
                 }
                 else
                 {
@@ -276,26 +280,27 @@ namespace ChallengeSIA.Server.Model
             var instancesToOpen = maxInstances - notepadInstances.Count;
 
             List<Position> lastPositions = await _positionService.GetLastPositionsAsync();
-
+            lastPositions = lastPositions.OrderBy(x => x.Type).ToList();
             var positions = new[]
             {
-        lastPositions.Count > 0 ? new WindowComunication.RECT
-        {
-            Left = lastPositions[0].Left,
-            Top = lastPositions[0].Top,
-            Right = lastPositions[0].Right,
-            Bottom = lastPositions[0].Bottom
-        } : new WindowComunication.RECT { Left = 100, Top = 100, Right = 500, Bottom = 400 },
-        lastPositions.Count > 1 ? new WindowComunication.RECT
-        {
-            Left = lastPositions[1].Left,
-            Top = lastPositions[1].Top,
-            Right = lastPositions[1].Right,
-            Bottom = lastPositions[1].Bottom
-        } : new WindowComunication.RECT { Left = 620, Top = 100, Right = 1120, Bottom = 400 }
-    };
-
-            for (int i = 0; i < instancesToOpen; i++)
+                lastPositions.Count > 0 ? new WindowComunication.RECT
+                {
+                    Left = lastPositions[0].Left,
+                    Top = lastPositions[0].Top,
+                    Right = lastPositions[0].Right,
+                    Bottom = lastPositions[0].Bottom
+                } : new WindowComunication.RECT { Left = 100, Top = 100, Right = 500, Bottom = 400 },
+                lastPositions.Count > 1 ? new WindowComunication.RECT
+                {
+                    Left = lastPositions[1].Left,
+                    Top = lastPositions[1].Top,
+                    Right = lastPositions[1].Right,
+                    Bottom = lastPositions[1].Bottom
+                } : new WindowComunication.RECT { Left = 620, Top = 100, Right = 1120, Bottom = 400 }
+            };
+            var openWind = WindowComunication.GetProcessByWindowTitle("Sin titulo 1");
+            var index = openWind != null ? 1 : 0;
+            for (var i = 0; i < instancesToOpen; i++)
             {
                 var process = Process.Start("notepad.exe");
 
@@ -305,13 +310,14 @@ namespace ChallengeSIA.Server.Model
                     hWnd = process.MainWindowHandle;
                 }
 
-                WindowComunication.SetWindowText(hWnd, $"Sin titulo {i + 1}");
+                WindowComunication.SetWindowText(hWnd, $"Sin titulo {index + 1}");
 
                 if (hWnd != IntPtr.Zero)
                 {
+                    
                     if (WindowComunication.IsWindowVisible(hWnd))
                     {
-                        var rect = positions[i];
+                        var rect = positions[index];
                         WindowComunication.SetWindowPos(hWnd, IntPtr.Zero, rect.Left, rect.Top,
                             rect.Right - rect.Left, rect.Bottom - rect.Top, 0);
                         notepadWindows[hWnd] = rect;
@@ -322,8 +328,8 @@ namespace ChallengeSIA.Server.Model
                         process.Kill();
                     }
                 }
+            index++;
             }
-
             SendNotepadDataToClients();
         }
 
